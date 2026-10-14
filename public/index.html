@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="BMI Calculator - Assess your health status instantly with personalized recommendations">
+    <title>BMI Calculator - Your Health Assessment Tool</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Dark Mode Toggle -->
+    <button id="darkModeToggle" class="dark-mode-toggle" aria-label="Toggle dark mode">
+        <span class="icon">🌙</span>
+    </button>
+
+    <!-- Navigation -->
+    <nav class="navbar" role="navigation">
+        <div class="container">
+            <div class="nav-brand">BMI Calculator</div>
+            <ul class="nav-menu">
+                <li><a href="#hero">Home</a></li>
+                <li><a href="#calculator">Calculator</a></li>
+                <li><a href="#progress">Progress</a></li>
+                <li><a href="#about">About</a></li>
+                <li id="userInfo" hidden>
+                    <span id="userName" class="user-name"></span>
+                    <button id="logoutBtn" class="btn-logout">Logout</button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal" hidden>
+        <div class="modal-content">
+            <h2 id="authTitle">Welcome Back</h2>
+            <p class="auth-subtitle">Please login to track your BMI progress</p>
+
+            <!-- Login Form -->
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input
+                        type="email"
+                        id="loginEmail"
+                        placeholder="Enter your email"
+                        required
+                    >
+                    <span id="loginEmailError" class="error-message"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input
+                        type="password"
+                        id="loginPassword"
+                        placeholder="Enter your password"
+                        required
+                    >
+                    <span id="loginPasswordError" class="error-message"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Login</button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="registerForm" class="auth-form" hidden>
+                <div class="form-group">
+                    <label for="registerName">Name</label>
+                    <input
+                        type="text"
+                        id="registerName"
+                        placeholder="Enter your full name"
+                        required
+                    >
+                    <span id="registerNameError" class="error-message"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="registerEmail">Email</label>
+                    <input
+                        type="email"
+                        id="registerEmail"
+                        placeholder="Enter your email"
+                        required
+                    >
+                    <span id="registerEmailError" class="error-message"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="registerPassword">Password</label>
+                    <input
+                        type="password"
+                        id="registerPassword"
+                        placeholder="Enter password (min 6 characters)"
+                        required
+                    >
+                    <span id="registerPasswordError" class="error-message"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Register</button>
+            </form>
+
+            <!-- Toggle between Login/Register -->
+            <div class="auth-toggle">
+                <p id="authToggleText">
+                    Don't have an account?
+                    <a href="#" id="toggleAuthMode">Register here</a>
+                </p>
+            </div>
+
+            <div id="authMessage" class="auth-message" hidden></div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section id="hero" class="hero">
+        <div class="container">
+            <h1 class="hero-title">BMI Calculator</h1>
+            <p class="hero-tagline">Assess your health status instantly</p>
+            <a href="#calculator" class="cta-button">Calculate Your BMI</a>
+        </div>
+    </section>
+
+    <!-- Calculator Section -->
+    <section id="calculator" class="calculator-section">
+        <div class="container">
+            <div class="calculator-card">
+                <h2>Calculate Your BMI</h2>
+
+                <form id="bmiForm" novalidate>
+                    <div class="form-group">
+                        <label for="height">Height (cm)</label>
+                        <input
+                            type="number"
+                            id="height"
+                            name="height"
+                            placeholder="Enter height in cm (50-250)"
+                            min="50"
+                            max="250"
+                            step="0.1"
+                            aria-describedby="heightError"
+                            required
+                        >
+                        <span id="heightError" class="error-message" role="alert"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="weight">Weight (kg)</label>
+                        <input
+                            type="number"
+                            id="weight"
+                            name="weight"
+                            placeholder="Enter weight in kg (10-500)"
+                            min="10"
+                            max="500"
+                            step="0.1"
+                            aria-describedby="weightError"
+                            required
+                        >
+                        <span id="weightError" class="error-message" role="alert"></span>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="btn btn-primary">Calculate BMI</button>
+                        <button type="reset" class="btn btn-secondary">Reset</button>
+                    </div>
+                </form>
+
+                <!-- Results Section -->
+                <div id="results" class="results" aria-live="polite" aria-atomic="true" hidden>
+                    <div class="result-summary">
+                        <h3>Your BMI Result</h3>
+                        <div class="bmi-value">
+                            <span id="bmiValue">0.0</span>
+                        </div>
+                        <div id="bmiCategory" class="bmi-category"></div>
+                    </div>
+
+                    <!-- BMI Gauge -->
+                    <div class="bmi-gauge">
+                        <div class="gauge-bar">
+                            <div class="gauge-section underweight" data-label="Underweight"></div>
+                            <div class="gauge-section normal" data-label="Normal"></div>
+                            <div class="gauge-section overweight" data-label="Overweight"></div>
+                            <div class="gauge-section obese" data-label="Obese"></div>
+                        </div>
+                        <div id="gaugeMarker" class="gauge-marker"></div>
+                        <div class="gauge-labels">
+                            <span>18.5</span>
+                            <span>25</span>
+                            <span>30</span>
+                        </div>
+                    </div>
+
+                    <!-- Health Report -->
+                    <div class="health-report">
+                        <h3>Personalized Health Report</h3>
+
+                        <div class="report-card">
+                            <h4>🚨 Health Risk Level</h4>
+                            <p id="healthRisk"></p>
+                        </div>
+
+                        <div class="report-card">
+                            <h4>🥗 Diet Suggestions</h4>
+                            <p id="dietSuggestions"></p>
+                        </div>
+
+                        <div class="report-card">
+                            <h4>🏃 Exercise Suggestions</h4>
+                            <p id="exerciseSuggestions"></p>
+                        </div>
+
+                        <div class="report-card">
+                            <h4>💧 Recommended Daily Water Intake</h4>
+                            <p id="waterIntake"></p>
+                        </div>
+
+                        <div class="report-card highlight">
+                            <h4>🎯 Healthy Weight Goal</h4>
+                            <p id="weightGoal"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Progress Tracking Section -->
+    <section id="progress" class="progress-section">
+        <div class="container">
+            <h2>Your Progress Tracking</h2>
+
+            <div id="progressContent" class="progress-content">
+                <div class="no-data" id="noData">
+                    <p>📊 No data yet. Calculate your BMI to start tracking your progress!</p>
+                </div>
+
+                <div id="progressData" hidden>
+                    <div class="progress-controls">
+                        <button id="clearHistory" class="btn btn-danger">Clear History</button>
+                    </div>
+
+                    <!-- History Table -->
+                    <div class="history-table-wrapper">
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Weight (kg)</th>
+                                    <th>BMI</th>
+                                    <th>Category</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTableBody"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- BMI Chart -->
+                    <div class="chart-container">
+                        <canvas id="bmiChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about-section">
+        <div class="container">
+            <h2>How It Works</h2>
+
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>User Input</h3>
+                    <p>Enter your height in centimeters and weight in kilograms</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Validation</h3>
+                    <p>We validate your input to ensure accurate calculations</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Calculation</h3>
+                    <p>BMI is calculated using the formula: weight (kg) ÷ height² (m²)</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3>Health Analysis</h3>
+                    <p>Your BMI is classified into health categories</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <h3>Personalized Report</h3>
+                    <p>Receive customized health recommendations and goals</p>
+                </div>
+            </div>
+
+            <div class="bmi-info">
+                <h3>BMI Categories</h3>
+                <div class="category-table">
+                    <div class="category-row">
+                        <span class="badge badge-underweight">Underweight</span>
+                        <span>Below 18.5</span>
+                    </div>
+                    <div class="category-row">
+                        <span class="badge badge-normal">Normal weight</span>
+                        <span>18.5 - 24.9</span>
+                    </div>
+                    <div class="category-row">
+                        <span class="badge badge-overweight">Overweight</span>
+                        <span>25.0 - 29.9</span>
+                    </div>
+                    <div class="category-row">
+                        <span class="badge badge-obese">Obese</span>
+                        <span>30.0 and above</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-org">Department of Information Technology | 2026</p>
+            <p class="footer-credits">
+                <strong>Credits:</strong> Abhinav Bins, Imran Sinaj, Savio Shery, Merin George, Nesha Benny
+            </p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
